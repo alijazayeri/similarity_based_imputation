@@ -1,3 +1,6 @@
+# Authors: Ali Jazayeri, Ou Stella Liang and Christopher C. Yang
+# Date: 05/10/2019
+
 # similarity_based_imputation
 # This code is developed for the IEEE ICHI - 2019 Data Analytics Challenge on Missing data Imputation (DACMI).
 # Details are provided at http://www.ieee-ichi.org/challenge.html
