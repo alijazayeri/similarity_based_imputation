@@ -9,5 +9,5 @@
 # To run the code, you need two folders:
 #  1. A folder containing the training data (reference files)
 #  2. A folder containing the test data
-# The code create one single data frame composed of all the reference files.
-# This data frame is used as a refernce in the code for imputing missing values in test files.
+# The code creates one single data frame composed of all the reference files.
+# This data frame is used as a reference in the code for imputing missing values in test files.
