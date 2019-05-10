@@ -74,7 +74,7 @@ weight_func <- function(ddt,a,b,c){
 }
 #____________________________________________________________________________________________________
 # This function is the main contribution of this work!
-# It estimates the missing data based on other patients' data, if there is not enough-similar patient
+# It estimates the missing data based on other patients' data, if there is not enough-similar patients
 # in the reference data frame (training data), it simply interpolates the missing data linearly!
 impute_values <- function(ref_df, pat_df, miss_df){
   
