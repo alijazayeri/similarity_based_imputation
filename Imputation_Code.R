@@ -72,48 +72,6 @@ train_df$missed_df_non_na <- ifelse(train_df$missed_df_non_na > 9, 1,NA)
 weight_func <- function(ddt,a,b,c){
   return(sapply(ddt, function(x) ifelse(is.na(x),100000,1/(1+(abs((x-c)/a)^(2*b))))))
 }
-
-# List of test dataset files
-testing_files_list <- list.files(path = testing_data_directory, pattern = '.csv', full.names = TRUE)
-
-for (test_file in testing_files_list[3000:3999]){
-  temp_test_df <- read.table(test_file, header = TRUE,sep = ',')
-  temp_id <- as.numeric(stri_match_last_regex(test_file,'\\d+'))
-  temp_test_df$id <- temp_id
-
-  # Two functions created to compute a range for each analyte of the patient
-  # These functions help to evaluate the acceptance of each estimated missing value
-  iqr_fun_max <- function(x) {max(x, na.rm=TRUE) + 0.25 * IQR(x, na.rm=TRUE)}
-  iqr_fun_min <- function(x) {min(x, na.rm=TRUE) - 0.25 * IQR(x, na.rm=TRUE)}
-  
-  # Creating two data frames providing the acceptance range for estimated values 
-  iqr_df_max <- as.data.frame(t(apply(temp_test_df[,analyte_list], 2, iqr_fun_max)))
-  iqr_df_min <- as.data.frame(t(apply(temp_test_df[,analyte_list], 2, iqr_fun_min)))
-  
-  # Adding two columns to the patient data frame which shows the delta-t 
-  # or time difference for each row relative to the previous and next measurement
-  temp_test_df$dt_mOne <- temp_test_df$CHARTTIME - lag(temp_test_df$CHARTTIME)
-  temp_test_df$dt_mOne[1] <- temp_test_df$CHARTTIME[2]
-  temp_test_df$dt_pOne[1] <- temp_test_df$CHARTTIME[3] - temp_test_df$CHARTTIME[2]
-  temp_test_df$dt_pOne <- lead(temp_test_df$CHARTTIME) - temp_test_df$CHARTTIME
-  temp_test_df$dt_mOne[nrow(temp_test_df)] <- temp_test_df$CHARTTIME[nrow(temp_test_df)-1] - temp_test_df$CHARTTIME[nrow(temp_test_df)-2]
-  temp_test_df$dt_pOne[nrow(temp_test_df)] <- temp_test_df$CHARTTIME[nrow(temp_test_df)] - temp_test_df$CHARTTIME[nrow(temp_test_df)-1]
-  # We impute missing values row-wise. 
-  temp_test_df$na_cnt <- apply(temp_test_df[,analyte_list], 1, function(x) length(which(is.na(x))))
-  temp_test_df$row_n <- seq(1:nrow(temp_test_df))
-  # The following data frame contains the row number of the patient data frame with the missing analytes
-  # in the row. Just rows with missing values are included. Rows with multiple missing values are
-  # repeated with the same row number if row_n column and different analyte names in analyte column
-  temp_test_na_df <- bind_rows(apply(temp_test_df[which(temp_test_df$na_cnt>0),],1, function(x) 
-    data.frame(row_n = x[length(x)], analyte = unlist(intersect(names(x[which(is.na(x))]),analyte_list)))))
-  
-  # The function impute_values called with the reference data frame, patient data frame, and missing values data frame
-  temp_imputed_df <- impute_values(train_df, temp_test_df, temp_test_na_df)
-  
-  # Export the patient data frame with imputed missing values to the "imputed_results" folder
-  write.csv(temp_imputed_df[,orig_cols],paste(current_directory,'/imputed_results/',temp_id,'.csv',sep = ''),row.names = FALSE)
-}
-
 #____________________________________________________________________________________________________
 # This function is the main contribution of this work!
 # It estimates the missing data based on other patients' data, if there is not enough-similar patient
@@ -213,3 +171,47 @@ impute_values <- function(ref_df, pat_df, miss_df){
   return(pat_df)
 }
 #____________________________________________________________________________________________________
+                
+                
+                
+# List of test dataset files
+testing_files_list <- list.files(path = testing_data_directory, pattern = '.csv', full.names = TRUE)
+
+for (test_file in testing_files_list[3000:3999]){
+  temp_test_df <- read.table(test_file, header = TRUE,sep = ',')
+  temp_id <- as.numeric(stri_match_last_regex(test_file,'\\d+'))
+  temp_test_df$id <- temp_id
+
+  # Two functions created to compute a range for each analyte of the patient
+  # These functions help to evaluate the acceptance of each estimated missing value
+  iqr_fun_max <- function(x) {max(x, na.rm=TRUE) + 0.25 * IQR(x, na.rm=TRUE)}
+  iqr_fun_min <- function(x) {min(x, na.rm=TRUE) - 0.25 * IQR(x, na.rm=TRUE)}
+  
+  # Creating two data frames providing the acceptance range for estimated values 
+  iqr_df_max <- as.data.frame(t(apply(temp_test_df[,analyte_list], 2, iqr_fun_max)))
+  iqr_df_min <- as.data.frame(t(apply(temp_test_df[,analyte_list], 2, iqr_fun_min)))
+  
+  # Adding two columns to the patient data frame which shows the delta-t 
+  # or time difference for each row relative to the previous and next measurement
+  temp_test_df$dt_mOne <- temp_test_df$CHARTTIME - lag(temp_test_df$CHARTTIME)
+  temp_test_df$dt_mOne[1] <- temp_test_df$CHARTTIME[2]
+  temp_test_df$dt_pOne[1] <- temp_test_df$CHARTTIME[3] - temp_test_df$CHARTTIME[2]
+  temp_test_df$dt_pOne <- lead(temp_test_df$CHARTTIME) - temp_test_df$CHARTTIME
+  temp_test_df$dt_mOne[nrow(temp_test_df)] <- temp_test_df$CHARTTIME[nrow(temp_test_df)-1] - temp_test_df$CHARTTIME[nrow(temp_test_df)-2]
+  temp_test_df$dt_pOne[nrow(temp_test_df)] <- temp_test_df$CHARTTIME[nrow(temp_test_df)] - temp_test_df$CHARTTIME[nrow(temp_test_df)-1]
+  # We impute missing values row-wise. 
+  temp_test_df$na_cnt <- apply(temp_test_df[,analyte_list], 1, function(x) length(which(is.na(x))))
+  temp_test_df$row_n <- seq(1:nrow(temp_test_df))
+  # The following data frame contains the row number of the patient data frame with the missing analytes
+  # in the row. Just rows with missing values are included. Rows with multiple missing values are
+  # repeated with the same row number if row_n column and different analyte names in analyte column
+  temp_test_na_df <- bind_rows(apply(temp_test_df[which(temp_test_df$na_cnt>0),],1, function(x) 
+    data.frame(row_n = x[length(x)], analyte = unlist(intersect(names(x[which(is.na(x))]),analyte_list)))))
+  
+  # The function impute_values called with the reference data frame, patient data frame, and missing values data frame
+  temp_imputed_df <- impute_values(train_df, temp_test_df, temp_test_na_df)
+  
+  # Export the patient data frame with imputed missing values to the "imputed_results" folder
+  write.csv(temp_imputed_df[,orig_cols],paste(current_directory,'/imputed_results/',temp_id,'.csv',sep = ''),row.names = FALSE)
+}
+
