@@ -8,6 +8,7 @@ The code for the Similarity-based Imputation of Missing Data in Electronic Healt
 To run the code, the folders of training and testing data sets should be added to the same directory that the R file is placed, with the name of:
 - "training_data", a folder containing the training data files (reference files)
 - "testing_data", a folder containing the test data files
+
 Also, the coefficients.csv file should be placed in the R file directory. This file contains the parameters of the generalized bell-shaped functions used in the code.
 Then, the code creates a new folder, "imputed_results", to be used for storing test data files with imputed values for missing data.
 The code creates one single data frame composed of all the reference files.
